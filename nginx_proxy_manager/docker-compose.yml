@@ -1,0 +1,41 @@
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'     # http
+      - '443:443'   # https
+      - '81:81'     # proxy-admin
+    networks:
+      - public_net
+    environment:
+      DB_MYSQL_HOST: "db"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: ${PASSWORD}
+      DB_MYSQL_PASSWORD: ${PASSWORD}
+      DB_MYSQL_NAME: ${PASSWORD}
+      INITIAL_ADMIN_EMAIL: ${EMAIL}
+      INITIAL_ADMIN_PASSWORD: ${PASSWORD}
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - db
+
+  db:
+    image: 'jc21/mariadb-aria:latest'
+    restart: unless-stopped
+    networks:
+      - public_net
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PASSWORD}
+      MYSQL_DATABASE: ${PASSWORD}
+      MYSQL_USER: ${PASSWORD}
+      MYSQL_PASSWORD: ${PASSWORD}
+      MARIADB_AUTO_UPGRADE: '1'
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+networks:
+  public_net:
+    driver: bridge
